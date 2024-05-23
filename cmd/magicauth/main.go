@@ -12,6 +12,7 @@ import (
 	"github.com/ory/fosite/token/jwt"
 	"log"
 	"net/http"
+	"regexp"
 	"time"
 )
 
@@ -46,6 +47,12 @@ var (
 	provider      = compose.ComposeAllEnabled(config, store, privateKey)
 )
 
+var specialCharRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
+
+func replaceSpecialChars(str string) string {
+	return specialCharRegex.ReplaceAllString(str, "_")
+}
+
 func main() {
 	http.HandleFunc("/auth", authEndpoint)
 	http.HandleFunc("/token", tokenEndpoint)
@@ -64,7 +71,13 @@ func authEndpoint(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	session := newSession("gosho")
+	username := req.Header.Get("Tailscale-User-Login")
+	if username == "" {
+		provider.WriteAuthorizeError(ctx, res, authReq, fosite.ErrRequestUnauthorized)
+		return
+	}
+
+	session := newSession(replaceSpecialChars(username))
 
 	response, err := provider.NewAuthorizeResponse(ctx, authReq, session)
 	if err != nil {
@@ -132,7 +145,6 @@ func newSession(user string) *openid.DefaultSession {
 		Claims: &jwt.IDTokenClaims{
 			Issuer:      "http://localhost:8080",
 			Subject:     user,
-			Audience:    []string{"http://localhost:3000"},
 			ExpiresAt:   time.Now().Add(time.Hour * 6),
 			IssuedAt:    time.Now(),
 			RequestedAt: time.Now(),
