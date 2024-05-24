@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"github.com/invopop/jsonschema"
 	"github.com/ory/fosite"
+	"github.com/stoewer/go-strcase"
 )
 
 func main() {
-	schema := jsonschema.Reflect(&fosite.DefaultClient{})
+	reflector := new(jsonschema.Reflector)
+	reflector.KeyNamer = strcase.LowerCamelCase
+
+	schema := reflector.Reflect(&fosite.DefaultClient{})
 	spec := schema.Definitions["DefaultClient"]
 
 	data, _ := spec.MarshalJSON()
