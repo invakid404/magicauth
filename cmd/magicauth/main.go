@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	"github.com/invakid404/magicauth/config"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
 	"github.com/ory/fosite/handler/openid"
@@ -38,13 +39,13 @@ var (
 		IssuerPublicKeys:       map[string]storage.IssuerPublicKeys{},
 		PARSessions:            map[string]fosite.AuthorizeRequester{},
 	}
-	secret = []byte("my super secret signing password")
-	config = &fosite.Config{
+	secret      = []byte("my super secret signing password")
+	oauthConfig = &fosite.Config{
 		AccessTokenLifespan: time.Minute * 60,
 		GlobalSecret:        secret,
 	}
 	privateKey, _ = rsa.GenerateKey(rand.Reader, 2048)
-	provider      = compose.ComposeAllEnabled(config, store, privateKey)
+	provider      = compose.ComposeAllEnabled(oauthConfig, store, privateKey)
 )
 
 var specialCharRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`)
@@ -54,11 +55,14 @@ func replaceSpecialChars(str string) string {
 }
 
 func main() {
+	cfg := config.Get()
+
 	http.HandleFunc("/auth", authEndpoint)
 	http.HandleFunc("/token", tokenEndpoint)
 	http.HandleFunc("/userinfo", userinfoEndpoint)
 
-	log.Fatalln(http.ListenAndServe(":8080", nil))
+	log.Println("listening on", cfg.Port)
+	log.Fatalln(http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), nil))
 }
 
 func authEndpoint(res http.ResponseWriter, req *http.Request) {
@@ -143,7 +147,7 @@ func userinfoEndpoint(res http.ResponseWriter, req *http.Request) {
 func newSession(user string) *openid.DefaultSession {
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{
-			Issuer:      "http://localhost:8080",
+			Issuer:      config.Get().BaseURL,
 			Subject:     user,
 			ExpiresAt:   time.Now().Add(time.Hour * 6),
 			IssuedAt:    time.Now(),
