@@ -20,7 +20,7 @@ import (
 func RunController(oauth *oauth.OAuth) (chan struct{}, error) {
 	hasher := oauth.Provider.(*fosite.Fosite).Config.GetSecretsHasher(context.Background())
 
-	config, err := clientcmd.BuildConfigFromFlags("", "/Users/inva/.kube/config")
+	config, err := clientcmd.BuildConfigFromFlags("", "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to build config: %w", err)
 	}
