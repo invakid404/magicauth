@@ -8,6 +8,7 @@ import (
 	"github.com/stoewer/go-strcase"
 	"log"
 	"os"
+	"strings"
 	"text/template"
 )
 
@@ -26,6 +27,16 @@ func main() {
 
 	schema := reflector.Reflect(&fosite.DefaultClient{})
 	spec := schema.Definitions["DefaultClient"]
+
+	// Remove content encoding from secret fields
+	for pair := spec.Properties.Oldest(); pair != nil; pair = pair.Next() {
+		if strings.Contains(pair.Key, "Secret") {
+			pair.Value.ContentEncoding = ""
+			if pair.Value.Items != nil {
+				pair.Value.Items.ContentEncoding = ""
+			}
+		}
+	}
 
 	data, _ := spec.MarshalJSON()
 
