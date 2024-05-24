@@ -8,6 +8,7 @@ require (
 	github.com/invopop/jsonschema v0.12.0
 	github.com/ory/fosite v0.46.1
 	github.com/stoewer/go-strcase v1.3.0
+	github.com/tidwall/pretty v1.2.1
 )
 
 require (
