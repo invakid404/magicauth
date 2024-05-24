@@ -3,11 +3,11 @@ package main
 import (
 	"bytes"
 	_ "embed"
-	"fmt"
 	"github.com/invopop/jsonschema"
 	"github.com/ory/fosite"
 	"github.com/stoewer/go-strcase"
 	"log"
+	"os"
 	"text/template"
 )
 
@@ -36,5 +36,8 @@ func main() {
 		log.Fatalln("failed to render template:", err)
 	}
 
-	fmt.Println(string(output.Bytes()))
+	err = os.WriteFile("./crds/oauthclient.json", output.Bytes(), 0644)
+	if err != nil {
+		log.Fatalln("failed to write crd:", err)
+	}
 }
