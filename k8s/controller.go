@@ -15,10 +15,20 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
+	"strings"
 )
 
 func RunController(oauth *oauth.OAuth) (chan struct{}, error) {
 	hasher := oauth.Provider.(*fosite.Fosite).Config.GetSecretsHasher(context.Background())
+
+	hash := func(secret string) ([]byte, error) {
+		hashed, err := hasher.Hash(context.Background(), []byte(secret))
+		if err != nil {
+			return nil, fmt.Errorf("failed to hash secret: %w", err)
+		}
+
+		return hashed, nil
+	}
 
 	config, err := clientcmd.BuildConfigFromFlags("", "")
 	if err != nil {
@@ -69,12 +79,30 @@ func RunController(oauth *oauth.OAuth) (chan struct{}, error) {
 			delete(spec, key)
 		}
 
-		hashedSecret, err := hasher.Hash(context.Background(), []byte(spec["client_secret"].(string)))
-		if err != nil {
-			return nil, fmt.Errorf("failed to hash secret: %w", err)
-		}
+		// Hash secrets
+		for key, value := range spec {
+			if !strings.Contains(key, "secret") {
+				continue
+			}
 
-		spec["client_secret"] = hashedSecret
+			if values, ok := value.([]any); ok {
+				hashedSecrets := make([][]byte, len(values))
+				for idx, value := range values {
+					hashedSecrets[idx], err = hash(value.(string))
+					if err != nil {
+						return nil, err
+					}
+				}
+				spec[key] = hashedSecrets
+
+				continue
+			}
+
+			spec[key], err = hash(value.(string))
+			if err != nil {
+				return nil, err
+			}
+		}
 
 		var client fosite.DefaultClient
 		config := &mapstructure.DecoderConfig{
