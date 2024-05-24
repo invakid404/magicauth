@@ -9,6 +9,7 @@ import (
 
 func main() {
 	reflector := new(jsonschema.Reflector)
+	reflector.AllowAdditionalProperties = true
 	reflector.KeyNamer = strcase.LowerCamelCase
 
 	schema := reflector.Reflect(&fosite.DefaultClient{})
