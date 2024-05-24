@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	"github.com/felixge/httpsnoop"
 	"github.com/invakid404/magicauth/config"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
@@ -62,7 +63,18 @@ func main() {
 	http.HandleFunc("/userinfo", userinfoEndpoint)
 
 	log.Println("listening on", cfg.Port)
-	log.Fatalln(http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), nil))
+	log.Fatalln(http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		metrics := httpsnoop.CaptureMetrics(http.DefaultServeMux, res, req)
+
+		log.Printf(
+			"%s %s (code=%d dt=%s written=%d)",
+			req.Method,
+			req.URL,
+			metrics.Code,
+			metrics.Duration,
+			metrics.Written,
+		)
+	})))
 }
 
 func authEndpoint(res http.ResponseWriter, req *http.Request) {
