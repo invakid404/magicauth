@@ -2,7 +2,10 @@ module github.com/invakid404/magicauth
 
 go 1.22.2
 
-require github.com/ory/fosite v0.46.1
+require (
+	github.com/caarlos0/env/v11 v11.0.1
+	github.com/ory/fosite v0.46.1
+)
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
