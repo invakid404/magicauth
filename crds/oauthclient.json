@@ -75,7 +75,7 @@
         }
       }
     ],
-    "scope": "Namespaced",
+    "scope": "Cluster",
     "names": {
       "plural": "oauthclients",
       "singular": "oauthclient",
