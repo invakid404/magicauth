@@ -39,6 +39,16 @@ func main() {
 		}
 	}
 
+	// Make id non-required
+	writeIdx := 0
+	for _, prop := range spec.Required {
+		if prop != "id" {
+			spec.Required[writeIdx] = prop
+			writeIdx++
+		}
+	}
+	spec.Required = spec.Required[:writeIdx]
+
 	data, _ := spec.MarshalJSON()
 
 	var output bytes.Buffer
