@@ -92,9 +92,7 @@ func RunController(oauth *oauth.OAuth) (chan struct{}, error) {
 			return nil, fmt.Errorf("failed to map oauth client: %w", err)
 		}
 
-		if client.ID == "" {
-			client.ID = obj.GetName()
-		}
+		client.ID = obj.GetName()
 
 		return &client, nil
 	}

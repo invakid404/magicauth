@@ -39,7 +39,9 @@ func main() {
 		}
 	}
 
-	// Make id non-required
+	// Disallow overriding id
+	spec.Properties.Delete("id")
+
 	writeIdx := 0
 	for _, prop := range spec.Required {
 		if prop != "id" {

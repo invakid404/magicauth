@@ -17,9 +17,6 @@
             "properties": {
               "spec": {
                 "properties": {
-                  "id": {
-                    "type": "string"
-                  },
                   "clientSecret": {
                     "type": "string"
                   },
