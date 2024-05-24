@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"github.com/felixge/httpsnoop"
 	"github.com/invakid404/magicauth/config"
+	"github.com/invakid404/magicauth/k8s"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
 	"github.com/ory/fosite/handler/openid"
@@ -14,6 +16,8 @@ import (
 	"github.com/ory/fosite/token/jwt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"regexp"
 	"time"
 )
@@ -58,23 +62,50 @@ func replaceSpecialChars(str string) string {
 func main() {
 	cfg := config.Get()
 
+	controllerQuit, err := k8s.RunController()
+	if err != nil {
+		log.Fatalln("failed to run controller:", err)
+	}
+
 	http.HandleFunc("/auth", authEndpoint)
 	http.HandleFunc("/token", tokenEndpoint)
 	http.HandleFunc("/userinfo", userinfoEndpoint)
 
 	log.Println("listening on", cfg.Port)
-	log.Fatalln(http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		metrics := httpsnoop.CaptureMetrics(http.DefaultServeMux, res, req)
 
-		log.Printf(
-			"%s %s (code=%d dt=%s written=%d)",
-			req.Method,
-			req.URL,
-			metrics.Code,
-			metrics.Duration,
-			metrics.Written,
-		)
-	})))
+	server := &http.Server{
+		Addr: fmt.Sprintf(":%d", cfg.Port),
+		Handler: http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			metrics := httpsnoop.CaptureMetrics(http.DefaultServeMux, res, req)
+
+			log.Printf(
+				"%s %s (code=%d dt=%s written=%d)",
+				req.Method,
+				req.URL,
+				metrics.Code,
+				metrics.Duration,
+				metrics.Written,
+			)
+		}),
+	}
+
+	go func() {
+		log.Fatalln(server.ListenAndServe())
+	}()
+
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+
+	server.SetKeepAlivesEnabled(false)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+
+	_ = server.Shutdown(ctx)
+
+	controllerQuit <- struct{}{}
 }
 
 func authEndpoint(res http.ResponseWriter, req *http.Request) {
