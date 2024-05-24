@@ -15,7 +15,65 @@
           "openAPIV3Schema": {
             "type": "object",
             "properties": {
-              "spec": {"properties":{"id":{"type":"string"},"clientSecret":{"type":"string"},"rotatedSecrets":{"items":{"type":"string"},"type":"array"},"redirectUris":{"items":{"type":"string"},"type":"array"},"grantTypes":{"items":{"type":"string"},"type":"array"},"responseTypes":{"items":{"type":"string"},"type":"array"},"scopes":{"items":{"type":"string"},"type":"array"},"audience":{"items":{"type":"string"},"type":"array"},"public":{"type":"boolean"}},"type":"object","required":["id","redirectUris","grantTypes","responseTypes","scopes","audience","public"]}
+              "spec": {
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "type": "string"
+                  },
+                  "rotatedSecrets": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "redirectUris": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "grantTypes": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "responseTypes": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "scopes": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "audience": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "public": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object",
+                "required": [
+                  "id",
+                  "redirectUris",
+                  "grantTypes",
+                  "responseTypes",
+                  "scopes",
+                  "audience",
+                  "public"
+                ]
+              }
             }
           }
         }
@@ -26,9 +84,7 @@
       "plural": "oauthclients",
       "singular": "oauthclient",
       "kind": "OAuthClient",
-      "shortNames": [
-        "oac"
-      ]
+      "shortNames": ["oac"]
     }
   }
 }

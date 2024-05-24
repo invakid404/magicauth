@@ -6,6 +6,7 @@ import (
 	"github.com/invopop/jsonschema"
 	"github.com/ory/fosite"
 	"github.com/stoewer/go-strcase"
+	"github.com/tidwall/pretty"
 	"log"
 	"os"
 	"strings"
@@ -47,7 +48,7 @@ func main() {
 		log.Fatalln("failed to render template:", err)
 	}
 
-	err = os.WriteFile("./crds/oauthclient.json", output.Bytes(), 0644)
+	err = os.WriteFile("./crds/oauthclient.json", pretty.Pretty(output.Bytes()), 0644)
 	if err != nil {
 		log.Fatalln("failed to write crd:", err)
 	}
