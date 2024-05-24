@@ -7,6 +7,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.3
 	github.com/invopop/jsonschema v0.12.0
 	github.com/ory/fosite v0.46.1
+	github.com/stoewer/go-strcase v1.3.0
 )
 
 require (
