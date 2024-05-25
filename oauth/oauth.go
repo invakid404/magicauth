@@ -9,6 +9,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/storage"
 	"github.com/ory/fosite/token/jwt"
+	"log"
 	"time"
 )
 
@@ -53,10 +54,12 @@ func New(cfg *config.Config) *OAuth {
 
 func (o *OAuth) UpsertClient(client fosite.Client) {
 	o.memory.Clients[client.GetID()] = client
+	log.Println("upserted oauth client:", client.GetID())
 }
 
 func (o *OAuth) DeleteClient(id string) {
 	delete(o.memory.Clients, id)
+	log.Println("deleted oauth client:", id)
 }
 
 func (o *OAuth) NewSession(username string) *openid.DefaultSession {
