@@ -15,6 +15,13 @@ type HTTP struct {
 	config *config.Config
 }
 
+const (
+	authPath      = "/auth"
+	tokenPath     = "/token"
+	userinfoPath  = "/userinfo"
+	wellKnownPath = "/.well-known/openid-configuration"
+)
+
 func New(cfg *config.Config, oauth *oauth.OAuth) *HTTP {
 	mux := http.NewServeMux()
 
@@ -40,9 +47,10 @@ func New(cfg *config.Config, oauth *oauth.OAuth) *HTTP {
 		config: cfg,
 	}
 
-	mux.HandleFunc("/auth", h.auth)
-	mux.HandleFunc("/token", h.token)
-	mux.HandleFunc("/userinfo", h.userinfo)
+	mux.HandleFunc(authPath, h.auth)
+	mux.HandleFunc(tokenPath, h.token)
+	mux.HandleFunc(userinfoPath, h.userinfo)
+	mux.HandleFunc(wellKnownPath, h.wellKnown)
 
 	return h
 }
