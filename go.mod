@@ -6,6 +6,7 @@ require (
 	github.com/caarlos0/env/v11 v11.0.1
 	github.com/felixge/httpsnoop v1.0.3
 	github.com/invopop/jsonschema v0.12.0
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/ory/fosite v0.46.1
 	github.com/stoewer/go-strcase v1.3.0
 	github.com/tidwall/pretty v1.2.1
@@ -50,7 +51,6 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/goveralls v0.0.12 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
