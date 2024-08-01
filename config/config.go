@@ -7,8 +7,8 @@ import (
 )
 
 type Config struct {
-	Port    int    `env:"PORT" envDefault:"8080"`
-	BaseURL string `env:"BASE_URL,required"`
+	Port    int    `env:"MAGICAUTH_PORT" envDefault:"8080"`
+	BaseURL string `env:"MAGICAUTH_BASE_URL,required"`
 }
 
 var (
