@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/invakid404/magicauth/oauth"
-	"github.com/mitchellh/mapstructure"
+	"github.com/invakid404/magicauth/oauth/client"
 	"github.com/ory/fosite"
-	"github.com/stoewer/go-strcase"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -15,27 +14,15 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
-	"strings"
 )
 
 func RunController(oauth *oauth.OAuth) (chan struct{}, error) {
-	hasher := oauth.Provider.(*fosite.Fosite).Config.GetSecretsHasher(context.Background())
-
-	hash := func(secret string) ([]byte, error) {
-		hashed, err := hasher.Hash(context.Background(), []byte(secret))
-		if err != nil {
-			return nil, fmt.Errorf("failed to hash secret: %w", err)
-		}
-
-		return hashed, nil
-	}
-
-	config, err := clientcmd.BuildConfigFromFlags("", "")
+	k8sConfig, err := clientcmd.BuildConfigFromFlags("", "")
 	if err != nil {
 		return nil, fmt.Errorf("failed to build config: %w", err)
 	}
 
-	clientset, err := dynamic.NewForConfig(config)
+	clientset, err := dynamic.NewForConfig(k8sConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create clientset: %w", err)
 	}
@@ -61,77 +48,20 @@ func RunController(oauth *oauth.OAuth) (chan struct{}, error) {
 	)
 
 	toFositeClient := func(obj *unstructured.Unstructured) (*fosite.DefaultClient, error) {
-		spec := obj.UnstructuredContent()["spec"].(map[string]any)
-
-		// Convert keys to snake case
-		keys := make([]string, 0, len(spec))
-		for key := range spec {
-			keys = append(keys, key)
-		}
-
-		for _, key := range keys {
-			newKey := strcase.SnakeCase(key)
-			if key == newKey {
-				continue
-			}
-
-			spec[newKey] = spec[key]
-			delete(spec, key)
-		}
-
-		// Hash secrets
-		for key, value := range spec {
-			if !strings.Contains(key, "secret") {
-				continue
-			}
-
-			if values, ok := value.([]any); ok {
-				hashedSecrets := make([][]byte, len(values))
-				for idx, value := range values {
-					hashedSecrets[idx], err = hash(value.(string))
-					if err != nil {
-						return nil, err
-					}
-				}
-				spec[key] = hashedSecrets
-
-				continue
-			}
-
-			spec[key], err = hash(value.(string))
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		var client fosite.DefaultClient
-		config := &mapstructure.DecoderConfig{
-			Metadata: nil,
-			Result:   &client,
-			TagName:  "json",
-		}
-
-		decoder, err := mapstructure.NewDecoder(config)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create mapstructure decoder: %w", err)
-		}
-
-		if err := decoder.Decode(spec); err != nil {
-			return nil, fmt.Errorf("failed to map oauth client: %w", err)
-		}
-
-		client.ID = obj.GetName()
-
-		return &client, nil
+		return client.ToOAuthClient(
+			oauth,
+			obj.GetName(),
+			obj.UnstructuredContent()["spec"].(map[string]any),
+		)
 	}
 
 	upsertClient := func(obj *unstructured.Unstructured) {
-		client, err := toFositeClient(obj)
+		result, err := toFositeClient(obj)
 		if err != nil {
 			panic(err)
 		}
 
-		oauth.UpsertClient(client)
+		oauth.UpsertClient(result)
 	}
 
 	deleteClient := func(obj *unstructured.Unstructured) {
