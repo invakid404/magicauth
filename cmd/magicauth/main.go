@@ -18,14 +18,15 @@ func main() {
 	auth := oauth.New(cfg)
 	api := http.New(cfg, auth)
 
-	var controllerQuit chan struct{}
-
 	if cfg.EnableK8S {
-		var err error
-		controllerQuit, err = k8s.RunController(auth)
+		controllerQuit, err := k8s.RunController(auth)
 		if err != nil {
 			log.Fatalln("failed to run controller:", err)
 		}
+
+		defer func() {
+			controllerQuit <- struct{}{}
+		}()
 	}
 
 	go func() {
@@ -43,8 +44,4 @@ func main() {
 	defer cancel()
 
 	_ = api.Server.Shutdown(ctx)
-
-	if controllerQuit != nil {
-		controllerQuit <- struct{}{}
-	}
 }
