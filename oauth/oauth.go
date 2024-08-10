@@ -33,8 +33,7 @@ func New(cfg *config.Config) *OAuth {
 		PARSessions:            map[string]fosite.AuthorizeRequester{},
 	}
 
-	// TODO: move these to the config
-	secret := []byte("my super secret signing password")
+	secret := []byte(cfg.GlobalSecret)
 
 	oauthConfig := &fosite.Config{
 		AccessTokenLifespan: time.Minute * 60,

@@ -14,6 +14,7 @@ type Config struct {
 	Port         int                    `koanf:"port"`
 	BaseURL      string                 `koanf:"base_url" validate:"required"`
 	EnableK8S    bool                   `koanf:"enable_k8s"`
+	GlobalSecret string                 `koanf:"global_secret" validate:"required"`
 	OAuthClients map[string]OAuthClient `koanf:"clients"`
 }
 
