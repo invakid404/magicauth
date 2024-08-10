@@ -6,6 +6,7 @@ import (
 	"github.com/invakid404/magicauth/http"
 	"github.com/invakid404/magicauth/k8s"
 	"github.com/invakid404/magicauth/oauth"
+	"github.com/invakid404/magicauth/oauth/client"
 	"log"
 	"os"
 	"os/signal"
@@ -16,6 +17,15 @@ func main() {
 	cfg := config.Get()
 
 	auth := oauth.New(cfg)
+	for id, data := range cfg.OAuthClients {
+		result, err := client.ToOAuthClient(auth, id, data)
+		if err != nil {
+			log.Fatalln("failed to map client", id, "from config:", err)
+		}
+
+		auth.UpsertClient(result)
+	}
+
 	api := http.New(cfg, auth)
 
 	if cfg.EnableK8S {

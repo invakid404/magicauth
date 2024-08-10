@@ -11,10 +11,13 @@ import (
 )
 
 type Config struct {
-	Port      int    `koanf:"port"`
-	BaseURL   string `koanf:"base_url" validate:"required"`
-	EnableK8S bool   `koanf:"enable_k8s"`
+	Port         int                    `koanf:"port"`
+	BaseURL      string                 `koanf:"base_url" validate:"required"`
+	EnableK8S    bool                   `koanf:"enable_k8s"`
+	OAuthClients map[string]OAuthClient `koanf:"clients"`
 }
+
+type OAuthClient map[string]any
 
 var (
 	config = Config{
