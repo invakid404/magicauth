@@ -38,13 +38,20 @@ func Get() *Config {
 		k := koanf.New(".")
 
 		// Load environment variables (config file takes precedence)
-		err := k.Load(env.Provider("MAGICAUTH_", ".", func(s string) string {
-			return strings.ReplaceAll(
+		err := k.Load(env.ProviderWithValue("MAGICAUTH_", ".", func(key, value string) (string, any) {
+			key = strings.ReplaceAll(
 				strings.ToLower(
-					strings.TrimPrefix(s, "MAGICAUTH_"),
+					strings.TrimPrefix(key, "MAGICAUTH_"),
 				),
 				"__", ".",
 			)
+
+			var newValue any = value
+			if strings.Contains(value, ",") {
+				newValue = strings.Split(value, ",")
+			}
+
+			return key, newValue
 		}), nil)
 
 		if err != nil {
