@@ -68,6 +68,21 @@ func ToOAuthClient(oauth *oauth.OAuth, id string, data map[string]any) (*fosite.
 		}
 	}
 
+	// Environment variable convenience stuff:
+	// Allow passing string arrays as a single value
+	for _, key := range []string{"audience", "redirect_uris", "response_types", "grant_types", "scopes"} {
+		if value, ok := data[key].(string); ok {
+			data[key] = []string{value}
+		}
+	}
+
+	// Allow passing boolean values as strings
+	for _, key := range []string{"public"} {
+		if value, ok := data[key].(string); ok {
+			data[key] = value == "true"
+		}
+	}
+
 	var client fosite.DefaultClient
 	config := &mapstructure.DecoderConfig{
 		Metadata: nil,
