@@ -3,6 +3,8 @@ package oauth
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
+	"encoding/hex"
 	"github.com/invakid404/magicauth/config"
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
@@ -14,9 +16,11 @@ import (
 )
 
 type OAuth struct {
-	Provider fosite.OAuth2Provider
-	memory   *storage.MemoryStore
-	config   *config.Config
+	Provider   fosite.OAuth2Provider
+	memory     *storage.MemoryStore
+	config     *config.Config
+	privateKey *rsa.PrivateKey
+	keyID      string
 }
 
 func New(cfg *config.Config) *OAuth {
@@ -42,12 +46,18 @@ func New(cfg *config.Config) *OAuth {
 
 	privateKey, _ := rsa.GenerateKey(rand.Reader, 2048)
 
+	// Generate deterministic key ID from the public key modulus
+	hash := sha256.Sum256(privateKey.PublicKey.N.Bytes())
+	keyID := hex.EncodeToString(hash[:8])
+
 	provider := compose.ComposeAllEnabled(oauthConfig, memory, privateKey)
 
 	return &OAuth{
-		Provider: provider,
-		memory:   memory,
-		config:   cfg,
+		Provider:   provider,
+		memory:     memory,
+		config:     cfg,
+		privateKey: privateKey,
+		keyID:      keyID,
 	}
 }
 
@@ -61,6 +71,14 @@ func (o *OAuth) DeleteClient(id string) {
 	log.Println("deleted oauth client:", id)
 }
 
+func (o *OAuth) GetPrivateKey() *rsa.PrivateKey {
+	return o.privateKey
+}
+
+func (o *OAuth) GetKeyID() string {
+	return o.keyID
+}
+
 func (o *OAuth) NewSession(username string) *openid.DefaultSession {
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{
@@ -72,7 +90,9 @@ func (o *OAuth) NewSession(username string) *openid.DefaultSession {
 			AuthTime:    time.Now(),
 		},
 		Headers: &jwt.Headers{
-			Extra: make(map[string]interface{}),
+			Extra: map[string]interface{}{
+				"kid": o.keyID,
+			},
 		},
 	}
 }

@@ -20,6 +20,7 @@ const (
 	tokenPath     = "/token"
 	userinfoPath  = "/userinfo"
 	wellKnownPath = "/.well-known/openid-configuration"
+	jwksPath      = "/.well-known/jwks.json"
 )
 
 func New(cfg *config.Config, oauth *oauth.OAuth) *HTTP {
@@ -51,6 +52,7 @@ func New(cfg *config.Config, oauth *oauth.OAuth) *HTTP {
 	mux.HandleFunc(tokenPath, h.token)
 	mux.HandleFunc(userinfoPath, h.userinfo)
 	mux.HandleFunc(wellKnownPath, h.wellKnown)
+	mux.HandleFunc(jwksPath, h.jwks)
 
 	return h
 }
