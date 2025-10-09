@@ -13,10 +13,8 @@ func (h *HTTP) token(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if accessReq.GetGrantTypes().ExactOne("client_credentials") {
-		for _, scope := range accessReq.GetRequestedScopes() {
-			accessReq.GrantScope(scope)
-		}
+	for _, scope := range accessReq.GetRequestedScopes() {
+		accessReq.GrantScope(scope)
 	}
 
 	response, err := h.oauth.Provider.NewAccessResponse(ctx, accessReq)
