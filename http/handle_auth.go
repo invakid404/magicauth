@@ -22,6 +22,10 @@ func (h *HTTP) auth(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	for _, scope := range authReq.GetRequestedScopes() {
+		authReq.GrantScope(scope)
+	}
+
 	session := h.oauth.NewSession(replaceSpecialChars(username))
 
 	response, err := h.oauth.Provider.NewAuthorizeResponse(ctx, authReq, session)
